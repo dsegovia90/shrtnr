@@ -1,11 +1,29 @@
-use actix_web::{web, HttpResponse, Responder};
-use serde::Deserialize;
+use actix_web::{get, web, HttpResponse, Responder};
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
 #[derive(Deserialize)]
 pub struct QueryData {
-    uid: String,
+    id: String,
 }
 
-pub async fn get_link(data: web::Path<QueryData>) -> impl Responder {
-    HttpResponse::Ok().body(data.uid.to_string())
+#[derive(sqlx::FromRow, Serialize)]
+struct Link {
+    id: String,
+    url: String,
+    created_at: DateTime<Utc>,
+}
+
+#[get("/link/{id}")]
+pub async fn get_link(data: web::Path<QueryData>, pool: web::Data<PgPool>) -> impl Responder {
+    let query = sqlx::query_as::<_, Link>("SELECT * FROM links WHERE id = $1")
+        .bind(data.id.to_string())
+        .fetch_one(&**pool)
+        .await;
+
+    match query {
+        Ok(data) => HttpResponse::Ok().json(data),
+        Err(e) => HttpResponse::BadRequest().body(e.to_string()),
+    }
 }

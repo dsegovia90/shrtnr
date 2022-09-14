@@ -1,5 +1,5 @@
 use actix_web::{web, web::Data, App, HttpServer};
-use shrtnr::routes::{health_check::health_check, links};
+use shrtnr::routes::{health_check, links, redirect_link};
 use sqlx::postgres::PgPoolOptions;
 
 #[actix_web::main]
@@ -18,9 +18,9 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/api/v1")
                     .service(health_check)
                     .service(links::create_link)
-                    .route("/link/{uid}", web::get().to(links::get_link)),
+                    .service(links::get_link),
             )
-            .route("/{uid}", web::get().to(links::get_link))
+            .service(redirect_link)
             .app_data(data_pool.clone())
         // .service(web::get().to(links::get_link))
     })

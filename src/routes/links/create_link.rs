@@ -36,7 +36,3 @@ pub async fn create_link(data: web::Json<PostData>, pool: web::Data<PgPool>) -> 
         Err(e) => HttpResponse::BadRequest().body(e.to_string()),
     }
 }
-
-// HttpResponse::PermanentRedirect()
-//     .append_header(("Location", "https://www.google.com/"))
-//     .finish()
