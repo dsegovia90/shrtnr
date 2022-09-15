@@ -15,3 +15,10 @@ serde = { version = "1.0", features = ["derive"] }
 sqlx = { version = "0.6", features = [ "runtime-actix-native-tls" , "postgres", "chrono" ] }
 uuid = "1.1.2"
 rand = "0.8.5"
+
+[profile.release]
+strip = true
+# If release build is increasingly slow, change lto to "thin"
+lto = "fat"
+# Uncomment bellow to decrease build size slighly
+codegen-units = 1
