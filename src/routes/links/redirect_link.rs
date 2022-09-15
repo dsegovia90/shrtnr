@@ -20,7 +20,7 @@ pub async fn redirect_link(data: web::Path<QueryData>, pool: web::Data<PgPool>) 
         .await;
 
     match query {
-        Ok(row) => HttpResponse::PermanentRedirect()
+        Ok(row) => HttpResponse::TemporaryRedirect()
             .append_header(("Location", row.url))
             .finish(),
         Err(_) => HttpResponse::BadRequest().body("Link does not exist."),
