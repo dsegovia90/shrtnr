@@ -3,7 +3,7 @@ mod tests {
     use crate::common::db_startup::DBStartup;
     use actix_web::{http::Method, test, web::Data, App};
     use serde_json::json;
-    use shrtnr::routes::create_link::create_link;
+    use shrtnr::api::create_link::create_link;
 
     #[actix_web::test]
     async fn test_post_success_body() {

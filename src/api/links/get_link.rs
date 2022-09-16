@@ -24,6 +24,6 @@ pub async fn get_link(data: web::Path<QueryData>, pool: web::Data<PgPool>) -> im
 
     match query {
         Ok(data) => HttpResponse::Ok().json(data),
-        Err(e) => HttpResponse::BadRequest().body(e.to_string()),
+        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
 }

@@ -1,11 +1,11 @@
 use actix_web::{web, web::Data, App, HttpServer};
-use shrtnr::routes::{health_check, links, redirect_link};
+use shrtnr::api::{health_check, links, redirect_link};
 use sqlx::postgres::PgPoolOptions;
 
 #[actix_web::main]
+#[cfg(not(tarpaulin_include))]
 async fn main() -> std::io::Result<()> {
     let pool = PgPoolOptions::new()
-        .max_connections(5)
         .connect("postgres://daniel:password@localhost:5432/shrtnr")
         .await
         .expect("Failed to connect to Postgres");
@@ -22,7 +22,6 @@ async fn main() -> std::io::Result<()> {
             )
             .service(redirect_link)
             .app_data(data_pool.clone())
-        // .service(web::get().to(links::get_link))
     })
     .bind(("127.0.0.1", 8080))?
     .run()

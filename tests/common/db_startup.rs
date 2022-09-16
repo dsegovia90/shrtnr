@@ -35,6 +35,21 @@ impl DBStartup {
         }
     }
 
+    pub async fn new_faulty_db() -> Self {
+        let pg_url = "postgres://daniel:password@localhost:5432/";
+        let connection_pool = PgPool::connect(pg_url.to_string().as_str())
+            .await
+            .expect("Failed to connect to test db.");
+        let connection = PgConnection::connect(pg_url)
+            .await
+            .expect("Failed to connect to Postgres");
+        DBStartup {
+            connection_pool,
+            connection,
+            test_db_name: "<purposefully_empty>".to_owned(),
+        }
+    }
+
     pub async fn close(&mut self) {
         self.connection_pool.close().await;
         self.connection

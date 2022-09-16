@@ -7,25 +7,24 @@ mod tests {
     use shrtnr::api::create_link::create_link;
 
     #[actix_web::test]
-    async fn test_post_invalid_url() {
-        let mut db_setup = DBStartup::new().await;
+    async fn test_post_with_faulty_db() {
+        let db_setup = DBStartup::new_faulty_db().await;
 
         let data_pool = Data::new(db_setup.connection_pool.clone());
         let app = test::init_service(App::new().app_data(data_pool).service(create_link)).await;
         let req = test::TestRequest::with_uri("/link")
             .method(Method::POST)
             .set_json(json!({
-                "url": "some random url"
+                "url": "http://www.google.com"
             }))
             .to_request();
 
         let resp = test::call_service(&app, req).await;
         assert_eq!(
             resp.status(),
-            StatusCode::BAD_REQUEST,
-            "Expected failure with invalid url."
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Expected failure with url param as empty string. {:?}",
+            resp.into_body()
         );
-
-        db_setup.close().await;
     }
 }

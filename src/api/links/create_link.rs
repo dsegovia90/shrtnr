@@ -33,6 +33,6 @@ pub async fn create_link(data: web::Json<PostData>, pool: web::Data<PgPool>) -> 
 
     match query {
         Ok(_) => HttpResponse::Ok().body(random_id),
-        Err(e) => HttpResponse::BadRequest().body(e.to_string()),
+        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
 }

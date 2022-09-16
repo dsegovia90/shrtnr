@@ -7,7 +7,7 @@ mod tests {
     use shrtnr::api::create_link::create_link;
 
     #[actix_web::test]
-    async fn test_post_invalid_url() {
+    async fn test_post_success_body() {
         let mut db_setup = DBStartup::new().await;
 
         let data_pool = Data::new(db_setup.connection_pool.clone());
@@ -15,7 +15,7 @@ mod tests {
         let req = test::TestRequest::with_uri("/link")
             .method(Method::POST)
             .set_json(json!({
-                "url": "some random url"
+                "url": ""
             }))
             .to_request();
 
@@ -23,7 +23,8 @@ mod tests {
         assert_eq!(
             resp.status(),
             StatusCode::BAD_REQUEST,
-            "Expected failure with invalid url."
+            "Expected failure with url param as empty string. {:?}",
+            resp.into_body()
         );
 
         db_setup.close().await;
