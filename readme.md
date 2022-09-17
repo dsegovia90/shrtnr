@@ -14,5 +14,5 @@
 - [ ] Add Dockerfile to ease self hosting
 - [ ] Simple HTML UI to create new shortened URLs
 - [ ] Secure API
-- [ ] Automated tests
+- [x] Automated tests
 - [ ] Add support for Graph SEO (need to think about this implementation, maybe serve a static HTML with graph meta tags copied?)
