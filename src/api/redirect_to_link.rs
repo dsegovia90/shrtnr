@@ -1,6 +1,5 @@
 use actix_web::{get, http::header::HeaderMap, web, HttpRequest, HttpResponse, Responder};
 use chrono::Utc;
-use reqwest::header::HeaderValue;
 use serde::Deserialize;
 use serde_json::{Map, Value};
 use sqlx::PgPool;
@@ -26,16 +25,18 @@ pub async fn redirect_link(
         .fetch_one(&**pool)
         .await;
 
-    match sqlx::query("INSERT INTO link_hits (headers, created_at, link_id) VALUES($1, $2, $3)")
-        .bind(convert_into_value(req.headers()))
-        .bind(Utc::now())
-        .bind(data.id.to_string())
-        .execute(&**pool)
-        .await
-    {
-        Ok(analytics_query) => analytics_query,
-        Err(e) => return HttpResponse::InternalServerError().body(e.to_string()),
-    };
+    let analytics_query =
+        sqlx::query("INSERT INTO link_hits (headers, created_at, link_id) VALUES($1, $2, $3)")
+            .bind(convert_into_value(req.headers()))
+            .bind(Utc::now())
+            .bind(data.id.to_string())
+            .execute(&**pool)
+            .await;
+
+    match analytics_query {
+        Ok(_) => (),
+        Err(e) => println!("{}", e),
+    }
 
     match query {
         Ok(row) => HttpResponse::TemporaryRedirect()

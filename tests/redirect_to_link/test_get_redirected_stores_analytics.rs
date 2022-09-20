@@ -3,10 +3,10 @@ mod tests {
     use actix_web::{http::Method, test, web::Data, App};
     use chrono::Utc;
     use shrtnr::api::redirect_link;
-    use sqlx::{postgres::PgRow, types::Json};
 
     #[derive(sqlx::FromRow, Debug)]
     struct AnalyticsRow {
+        link_id: String,
         headers: serde_json::Value,
     }
 
@@ -44,7 +44,15 @@ mod tests {
 
         println!("{:?}", query);
 
-        assert!(false);
+        assert_eq!(
+            query.headers.get("header-test").unwrap(),
+            "123",
+            "Expected headers to match."
+        );
+        assert_eq!(
+            query.link_id, row_id,
+            "Expected link_id to be equal to row_id."
+        );
 
         db_setup.close().await;
     }
