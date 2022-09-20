@@ -1,5 +1,8 @@
-use actix_web::{get, web, HttpResponse, Responder};
+use actix_web::{get, http::header::HeaderMap, web, HttpRequest, HttpResponse, Responder};
+use chrono::Utc;
+use reqwest::header::HeaderValue;
 use serde::Deserialize;
+use serde_json::{Map, Value};
 use sqlx::PgPool;
 
 #[derive(Deserialize)]
@@ -13,11 +16,26 @@ struct Link {
 }
 
 #[get("/{id}")]
-pub async fn redirect_link(data: web::Path<QueryData>, pool: web::Data<PgPool>) -> impl Responder {
+pub async fn redirect_link(
+    data: web::Path<QueryData>,
+    req: HttpRequest,
+    pool: web::Data<PgPool>,
+) -> impl Responder {
     let query = sqlx::query_as::<_, Link>("SELECT * FROM links WHERE id = $1")
         .bind(data.id.to_string())
         .fetch_one(&**pool)
         .await;
+
+    match sqlx::query("INSERT INTO link_hits (headers, created_at, link_id) VALUES($1, $2, $3)")
+        .bind(convert_into_value(req.headers()))
+        .bind(Utc::now())
+        .bind(data.id.to_string())
+        .execute(&**pool)
+        .await
+    {
+        Ok(analytics_query) => analytics_query,
+        Err(e) => return HttpResponse::InternalServerError().body(e.to_string()),
+    };
 
     match query {
         Ok(row) => HttpResponse::TemporaryRedirect()
@@ -25,4 +43,18 @@ pub async fn redirect_link(data: web::Path<QueryData>, pool: web::Data<PgPool>) 
             .finish(),
         Err(_) => HttpResponse::NotFound().finish(),
     }
+}
+
+fn convert_into_value(headers: &HeaderMap) -> serde_json::Value {
+    println!("he: {}", headers.len());
+    let mut map = Map::new();
+    for (header_name, header_value) in headers.into_iter() {
+        let header_value_result = header_value.to_str();
+        match header_value_result {
+            Ok(val) => map.insert(header_name.to_string(), Value::String(val.to_string())),
+            Err(_) => None,
+        };
+    }
+
+    Value::Object(map)
 }
