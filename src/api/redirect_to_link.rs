@@ -47,7 +47,6 @@ pub async fn redirect_link(
 }
 
 fn convert_into_value(headers: &HeaderMap) -> serde_json::Value {
-    println!("he: {}", headers.len());
     let mut map = Map::new();
     for (header_name, header_value) in headers.into_iter() {
         let header_value_result = header_value.to_str();
