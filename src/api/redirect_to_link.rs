@@ -1,5 +1,5 @@
 use actix_web::{get, http::header::HeaderMap, web, HttpRequest, HttpResponse, Responder};
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde_json::{Map, Value};
 use sqlx::PgPool;
@@ -9,9 +9,11 @@ pub struct QueryData {
     id: String,
 }
 
-#[derive(sqlx::FromRow)]
+#[allow(dead_code)]
 struct Link {
+    id: String,
     url: String,
+    created_at: DateTime<Utc>,
 }
 
 #[get("/{id}")]
@@ -20,10 +22,13 @@ pub async fn redirect_link(
     req: HttpRequest,
     pool: web::Data<PgPool>,
 ) -> impl Responder {
-    let query = sqlx::query_as::<_, Link>("SELECT * FROM links WHERE id = $1")
-        .bind(data.id.to_string())
-        .fetch_one(&**pool)
-        .await;
+    let query = sqlx::query_as!(
+        Link,
+        "SELECT * FROM links WHERE id = $1",
+        data.id.to_string()
+    )
+    .fetch_one(&**pool)
+    .await;
 
     let head = req.head();
     let peer_addr = match head.peer_addr {
