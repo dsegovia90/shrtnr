@@ -30,41 +30,43 @@ pub async fn redirect_link(
     .fetch_one(&**pool)
     .await;
 
-    let head = req.head();
-    let peer_addr = match head.peer_addr {
-        Some(val) => val.to_string(),
-        None => "".to_string(),
-    };
+    actix_web::rt::spawn(async move {
+        let head = req.head();
+        let peer_addr = match head.peer_addr {
+            Some(val) => val.to_string(),
+            None => "".to_string(),
+        };
 
-    let analytics_query = sqlx::query!(
-        r#"
-                INSERT INTO link_hits (
-                    headers,
-                    method,
-                    uri,
-                    version,
-                    peer_addr,
-                    connection_type,
-                    created_at,
-                    link_id
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            "#,
-        convert_into_value(req.headers()),
-        head.method.to_string(),
-        head.uri.to_string(),
-        format!("{:?}", head.version),
-        peer_addr,
-        format!("{:?}", head.connection_type()),
-        Utc::now(),
-        data.id.to_string()
-    )
-    .execute(&**pool)
-    .await;
+        let analytics_query = sqlx::query!(
+            r#"
+                    INSERT INTO link_hits (
+                        headers,
+                        method,
+                        uri,
+                        version,
+                        peer_addr,
+                        connection_type,
+                        created_at,
+                        link_id
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                "#,
+            convert_into_value(req.headers()),
+            head.method.to_string(),
+            head.uri.to_string(),
+            format!("{:?}", head.version),
+            peer_addr,
+            format!("{:?}", head.connection_type()),
+            Utc::now(),
+            data.id.to_string()
+        )
+        .execute(&**pool)
+        .await;
 
-    match analytics_query {
-        Ok(_) => (),
-        Err(e) => println!("{}", e),
-    }
+        match analytics_query {
+            Ok(_) => (),
+            Err(e) => println!("{}", e),
+        };
+    });
 
     match query {
         Ok(row) => HttpResponse::TemporaryRedirect()
