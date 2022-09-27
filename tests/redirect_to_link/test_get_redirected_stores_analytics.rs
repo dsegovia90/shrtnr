@@ -42,8 +42,6 @@ mod tests {
             .await
             .expect("Could not query for analytics.");
 
-        println!("{:?}", query);
-
         assert_eq!(
             query.headers.get("header-test").unwrap(),
             "123",
