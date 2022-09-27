@@ -10,7 +10,7 @@
 
 ## What's next?
 
-- [ ] Add analytics to shortened URLs storing each click as a database row
+- [x] Add analytics to shortened URLs storing each click as a database row
 - [ ] Add Dockerfile to ease self hosting
 - [ ] Simple HTML UI to create new shortened URLs
 - [ ] Secure API
